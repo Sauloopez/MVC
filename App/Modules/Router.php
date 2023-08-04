@@ -1,6 +1,8 @@
 <?php
 class Router
 {
+    public $method;
+    public $controller;
 
     public function __construct()
     {
@@ -9,14 +11,31 @@ class Router
 
     public function matchRoute()
     {
-        $url = (explode('=', $_SERVER['QUERY_STRING']));
-        $vista = $url[1];
+        $query = explode('=', $_SERVER['QUERY_STRING'])[1];
+        $url = explode('/', $query);
+        $dirController = __DIR__ . '/../Controllers/' . $url[0] . 'Controller.php';
+        if (is_file($dirController)) {
+            require_once($dirController);
 
-        if (!is_file(__DIR__ . '/../Views/' . $vista . '.php')) {
-            $vista = '404';
+            $this->controller = $url[0].'Controller';
+            $this->method = '__construct';
+            if(isset($url[1])){
+                $this->method = $url[1];
+            }
+            $this->run();
+        }else{
+            ControlBase::Error();
         }
-        require_once(__DIR__ . '/../Views/' . $vista . '.php');
+    }
 
-
+    private function run(){
+        $controller = new $this->controller;
+        
+        if($this->method != '__construct'){
+            if(method_exists($controller, $this->method))
+                $controller ->{$this->method}();
+            else
+                ControlBase::Error();
+        }
     }
 }

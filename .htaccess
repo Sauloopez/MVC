@@ -1,3 +1,7 @@
 RewriteEngine On
 Options All -Indexes
+
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-l
 RewriteRule ^([a-zA-Z0-9/ñÑ-]+)$ index.php?views=$1

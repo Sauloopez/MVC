@@ -9,18 +9,11 @@ class App{
     private $response;
     
     public function __construct(){
-        $this->view = $this->getView();
-        $this->request = $this->request();
+        $this->getView();
     }
 
     private function getView(){
         $router = new Router();
-        return $router;
-    }
-
-    private function request(){
-        $request ='';
-        return $request;
     }
 }
 
