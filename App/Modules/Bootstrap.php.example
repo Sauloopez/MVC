@@ -1,0 +1,14 @@
+<?php
+define('PDO' , '');
+define('DB_HOST', 'localhost');
+define('DB_USER', '');
+define('DB_PASSWORD', '');
+define('DB', '');
+
+define ('URL', '');
+
+include_once(__DIR__.'/Router.php');
+include_once(__DIR__.'/ControlBase.php');
+include_once(__DIR__.'/ViewBase.php');
+include_once(__DIR__.'/ModelBase.php');
+include_once(__DIR__.'/Conection.php');
