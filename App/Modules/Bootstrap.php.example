@@ -1,14 +1,18 @@
 <?php
-define('PDO' , '');
-define('DB_HOST', 'localhost');
+define('PDO' , 'mysql');
+define('DB_HOST', '');
 define('DB_USER', '');
 define('DB_PASSWORD', '');
 define('DB', '');
+define('SECRET', '');
+define('DIR', '');
 
-define ('URL', '');
+define ('URL', 'http://modelomvc.mkcert/');
 
 include_once(__DIR__.'/Router.php');
 include_once(__DIR__.'/ControlBase.php');
 include_once(__DIR__.'/ViewBase.php');
 include_once(__DIR__.'/ModelBase.php');
 include_once(__DIR__.'/Conection.php');
+include_once(DIR.'/vendor/autoload.php');
+include_once(__DIR__.'/Auth.php');
