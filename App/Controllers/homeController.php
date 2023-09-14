@@ -15,6 +15,14 @@ class homeController extends ControlBase{
         echo 'hola desde registro';
     }
 
+    public function logout(){
+        if($this->isAuthenticated()){
+            session_destroy();
+            unset($_SESSION['jwt']);
+        }
+        $this->view->show('home/index');
+    }
+
     public function login(){
         $this->model('User');
         if($_SERVER['REQUEST_METHOD'] == 'POST'){
@@ -32,9 +40,8 @@ class homeController extends ControlBase{
         }
         if($_SERVER['REQUEST_METHOD']=='GET'){
             if($this->isAuthenticated()){
-                echo 'Ya has iniciado sesión';
+                $this->view->show('home/index', ['Ya has iniciado sesión como '.$this->authUser()->username]);
             }else{
-                echo 'oe';
                 $this->view->show('home/login');
             }
         }

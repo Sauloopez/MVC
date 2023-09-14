@@ -29,6 +29,10 @@ class ControlBase{
         }
     }
 
+    public function authUser(){
+        return Auth::validToken();
+    }
+
     public function valid_content($class_model, $content){
         $vars = get_class_vars($class_model);
         $model = new $class_model;

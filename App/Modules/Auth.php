@@ -15,20 +15,20 @@ class Auth
 
     public static function validToken()
     {
-        if (isset($_SESSION['jwt'])) {echo 'hola';
+        
+        if (isset($_SESSION['jwt'])) {
             $jwt = $_SESSION['jwt'];
             $tokenParts = explode('.', $jwt);
             $header = base64_decode($tokenParts[0]);
             $payload = base64_decode($tokenParts[1]);
-            $signatureProvided = $tokenParts[2];
+            $signatureProvided = ($tokenParts[2]);
+
+            $base64UrlHeader = Auth::base64UrlEncode($header);
+
+            // Encode Payload
+            $base64UrlPayload = Auth::base64UrlEncode($payload);
             
-            $signature = hash_hmac(
-                'sha256',
-                Auth::base64UrlEncode($header) . "." .
-                Auth::base64UrlEncode($payload),
-                SECRET,
-                true
-            );
+            $signature = Auth::base64UrlEncode(hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, SECRET, true));
             if ($signature == $signatureProvided) {
                 if (Carbon::now()->getTimestamp() > json_decode($payload)->exp) {
                     session_destroy();
@@ -37,9 +37,10 @@ class Auth
                     return null;
                 }
                 $role = in_array(json_decode($payload)->role, Auth::$roles) ? json_decode($payload)->role : '';
-                $user = json_decode($payload)->user;
+                $user = json_decode($payload)->user_id;
                 return new Auth($user, $role);
             }else{
+                echo 'no valid signature';
                 return null;
             }
         }else{
@@ -49,7 +50,7 @@ class Auth
 
     public static function createToken(Auth $auth)
     {
-        session_start();
+        //session_start();
         $header = json_encode([
             'typ' => 'JWT',
             'alg' => 'HS256'
@@ -59,7 +60,7 @@ class Auth
         $payload = json_encode([
             'user_id' => $auth->username,
             'role' => $auth->role,
-            'exp' => Carbon::now()->addMinutes(1)->getTimestamp()
+            'exp' => Carbon::now()->addMinutes(30)->getTimestamp()
         ]);
         $base64UrlHeader = Auth::base64UrlEncode($header);
 

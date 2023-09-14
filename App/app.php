@@ -7,7 +7,8 @@ class App{
     private $auth;
     
     public function __construct(){
-        $this->router = new Router();       
+        if(session_status() == PHP_SESSION_NONE) session_start(); 
+        $this->router = new Router();
     }
 }
 

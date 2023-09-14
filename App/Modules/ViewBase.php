@@ -10,7 +10,7 @@ class ViewBase{
         $this->footer = $this->dir."includes/footer.php";
     }
 
-    public function show($vista, $content=[]){
+    public function show($vista, $content=[], $isauth=false){
         $vista.='.php';
         if(is_file($this->dir.$vista)){
             $title = "MVC";
