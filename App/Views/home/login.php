@@ -1,6 +1,6 @@
 <div class="login-container">
-    <h6>
-        <?php echo isset($content[0]) ? $content[0] : ''; ?>
+    <h6 class="error">
+        <?php echo isset($content['message']) ? 'Error: '.$content['message'] : ''; ?>
     </h6>
     <form action="<?php echo URL . 'home/login'; ?>" method="post">
         <div class="input-group">

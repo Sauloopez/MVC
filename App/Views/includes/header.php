@@ -16,6 +16,10 @@
             /* Sombra sutil */
         }
 
+        .error{
+            color: red;
+        }
+
         .navbar-container {
             max-width: 1200px;
             margin: 0 auto;
@@ -198,11 +202,11 @@
             <nav class="navbar-menu">
                 <ul>
                     <li><a href="<?php echo URL ?>">Inicio</a></li>
-                    <li><a href="<?php echo URL . "home/login" ?>">iniciar sesión</a></li>
                     <?php
-                    
                     if(isset($_SESSION['jwt']))
                     echo '<li><a href="'.URL .'home/logout">Cerrar Sesión</a></li>';
+                    else
+                    echo '<li><a href="'.URL .'home/login">Iniciar Sesión</a></li>'
                     ?>
                 </ul>
             </nav>

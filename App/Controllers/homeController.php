@@ -20,7 +20,7 @@ class homeController extends ControlBase{
             session_destroy();
             unset($_SESSION['jwt']);
         }
-        $this->view->show('home/index');
+        header('Location: '.URL);
     }
 
     public function login(){
@@ -29,13 +29,18 @@ class homeController extends ControlBase{
             $username = $_POST['username'];
             $password = $_POST['password'];
 
-            $user = new User($username, $password);
-            if(User::READ($user)::class == 'Error'){
-                $this->view->show('home/login', ['datos incorrectos']);
-            }else{
-                Auth::createToken(new Auth($username, $username == 'webmaster@domain.co'?'admin':'user'));
+            $user=new User($username, $password);
+            $read = User::read($user);
+            if($read::class == 'User'){
+                Auth::createToken(new Auth($username, $user->getRole()));
                 header('Location: '.URL);
-                return ;
+                exit();
+            }else{
+                if($read === $user->DOESNT_EXISTS)
+                $this->view->show('home/login', ['message'=>'No se encuentra registrado']);
+                if($read === $user->WRONG_PASSWORD)
+                $this->view->show('home/login', ['message'=>'Datos incorrectos']);
+                exit();
             }
         }
         if($_SERVER['REQUEST_METHOD']=='GET'){

@@ -3,16 +3,24 @@
 class User extends ModelBase{
     private $user;
     private $password;
+    private $role;
 
     public Error $EXISTS;
     public Error $DOESNT_EXISTS;
+    public Error $WRONG_PASSWORD;
 
-    public function __construct($USER= "", $PASSWORD=""){
+    public function __construct($user= "", $password="", $role=''){
         parent::__construct();
-        $this->user=$USER;
-        $this->password=$PASSWORD;
+        $this->user=$user;
+        $this->password=$password;
+        $this->role = $role;
         $this->EXISTS = new Error('El usuario existe', 1);
         $this->DOESNT_EXISTS = new Error('El usuario no existe', 0);
+        $this->WRONG_PASSWORD = new Error('Contraseña incorrecta', 2);
+    }
+
+    public function hashPassword(){
+        $this->password= password_hash($this->password, PASSWORD_DEFAULT);
     }
 
     public function __destruct(){
@@ -28,92 +36,69 @@ class User extends ModelBase{
         return $this->password;
     }
 
-    public static function CREATE(User $USER){
-        $conn = $USER->conn;
-        $query = "INSERT INTO users (user, password) ".
-        "VALUES (?, ?)";
-
-        $stmt = $conn->prepare($query);
-
-        $value = User::READ($USER);
-        if($value == $USER->DOESNT_EXISTS){
-            $stmt->execute(array($USER->getUser(), $USER->getPassword()));
-            return $USER->DOESNT_EXISTS;
-        }
-
-        return $USER->EXISTS;
+    public function getRole(){
+        return $this->role;
     }
 
-    public static function READ(User $USER){
-        $conn = $USER->conn;
-        $query="SELECT user, password FROM users WHERE user = ? LIMIT 0,1";
+    public static function create(User $user){
+        $conn = $user->conn;
+        $query = "INSERT INTO users (username, password, role) ".
+        "VALUES (?, ?, ?)";
 
         $stmt = $conn->prepare($query);
 
-        $stmt->execute(array($USER->getUser()));
+        $value = User::read($user);
+        if($value == $user->DOESNT_EXISTS){
+            $user->hashPassword();
+            try{
+                $stmt->execute(array($user->getUser(), $user->getPassword(), $user->getRole()));
+                return $user->DOESNT_EXISTS;
+            }catch(PDOException $e){
+                return $e;
+            }
+            
+            
+        }
+
+        return $user->EXISTS;
+    }
+
+    public static function read(User $user){
+        $conn = $user->conn;
+        $query="SELECT username, password, role FROM users WHERE username = ?";
+
+        $stmt = $conn->prepare($query);
+
+        $stmt->execute(array($user->getUser()));
 
         $row= $stmt->fetch(PDO::FETCH_ASSOC);
         //Si existe la fila usuario
-        if(isset($row['user']))
-        //Si usuario es igual al usuario proporcionado
-        if($row['user'] == $USER->getUser()){
+        if($row){
             //Si la contraseña es igual a la proporcionada
-            if($row['password']== $USER->getPassword()){
+            if(password_verify($user->getPassword(), $row['password'])){
                 //Retorna el usuario
-                return new User($row['user'], $row['password']);
+                return new User($row['user'], '', $row['role']);
             }
-            //Si el usuario existe
-            return $USER->EXISTS;
+            //Si la contraseña es incorrecta
+            return $user->WRONG_PASSWORD;
         }
         //Si el usuario no existe
-        return $USER->DOESNT_EXISTS;
+        return $user->DOESNT_EXISTS;
     }
 
-    /**
-     * Actualiza un usuario
-     * @param User $USER Los parámetros nuevos del usuario.
-     * @param User $AUTH Los parámetros viejos del usuario
-     * @param PDO $conn El PDO conexion a la DB.
-     * @return Error|null|User Retorna nulo, si no hay autenticación.
-     */
-    public static function UPDATE(User $USER, User $AUTH){
-        $conn = $USER->conn;
-        $query="UPDATE users SET password= ? WHERE user = ?";
-        //Si los dos usuarios son iguales
-        if($USER->getUser() == $AUTH->getUser()){
-            //Se hace autenticacion del usuario y contraseña
-            $userA = User::READ($USER);
-            //Si no se devuelve un objeto usuario, hay error en la autenticacion...
-            if($userA::class == 'Error'){
-                //y por lo tanto ha de retornar nulo
-                return null;
-            }
-            $userA->__destruct();
-        }else{
-            //En caso de que los usuarios no sean iguales, falla la autenticacion
-            return null;
-        }
-        $stmt= $conn->prepare($query);
-
-        $value = User::READ($AUTH);
-        if($value::class != 'User'){
-            $stmt->execute(array($USER->getPassword(), $USER->getUser()));
-        }
-        return $value;
-    }
-
-    public static function DELETE(User $USER){
-        $conn = $USER->conn;
-        $query="DELETE FROM users WHERE user= ? AND password = ?";
+    
+    public static function delete(User $user){
+        $conn = $user->conn;
+        $query="DELETE FROM users WHERE username= ? AND password = ?";
 
         $stmt= $conn->prepare($query);
 
-        $value = User::READ($USER);
+        $value = User::read($user);
         if($value::class == 'Error'){
-            return $USER->DOESNT_EXISTS;
+            return $user->DOESNT_EXISTS;
         }
-
-        $stmt->execute(array($USER->getUser(), $USER->getPassword()));
-        return $USER;
+        
+        $stmt->execute(array($user->getUser(), $user->getPassword()));
+        return $user;
     }
 }

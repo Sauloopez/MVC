@@ -29,7 +29,7 @@ class Auth
             $base64UrlPayload = Auth::base64UrlEncode($payload);
             
             $signature = Auth::base64UrlEncode(hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, SECRET, true));
-            if ($signature == $signatureProvided) {
+            if (hash_equals($signature, $signatureProvided)) {
                 if (Carbon::now()->getTimestamp() > json_decode($payload)->exp) {
                     session_destroy();
                     unset($_SESSION['jwt']);
